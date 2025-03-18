@@ -11,7 +11,7 @@ jobs:
       - name: Manual Approval
         uses: trstringer/manual-approval@main
         with:
-          approvers: "user1,user2" # Replace with approver usernames
+          approvers: "Marinovp" # Replace with approver usernames
           title: "Deploy to Production"
           body: "Please review and approve the deployment to production."
           approved-keyword: "approve"
