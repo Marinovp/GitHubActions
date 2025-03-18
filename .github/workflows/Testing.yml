@@ -1,35 +1,45 @@
-name: Deployment with Approval
+name: Deployment with Manual Input
 
 on:
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select the deployment environment"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - staging
+          - production
+      deploy_version:
+        description: "Enter the deployment version (e.g., v1.2.3)"
+        required: true
+      confirmation:
+        description: "Type 'CONFIRM' to proceed"
+        required: true
 
 jobs:
   approval:
-    name: Await Approval
+    name: Await Manual Input
     runs-on: ubuntu-latest
-    environment: production  # Requires manual approval if enabled in environment settings
     steps:
-      - name: Request Approval
-        run: echo "Waiting for manual approval..."
+      - name: Validate User Input
+        run: |
+          if [[ "${{ github.event.inputs.confirmation }}" != "CONFIRM" ]]; then
+            echo "Deployment not confirmed. Exiting..."
+            exit 1
+          fi
+          echo "User confirmed deployment to ${{ github.event.inputs.environment }} with version ${{ github.event.inputs.deploy_version }}"
 
   deploy:
-    name: Deploy to Production
+    name: Deploy to Selected Environment
     runs-on: ubuntu-latest
-    needs: approval  # Waits for approval job to complete
+    needs: approval
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Deploy Application
         run: |
-          echo "Deploying to production..."
+          echo "Deploying version ${{ github.event.inputs.deploy_version }} to ${{ github.event.inputs.environment }}..."
           # Add deployment commands here
-
-  after-approval:
-    needs: deploy
-    runs-on: ubuntu-latest
-    environment:
-      name: production # Requires approval from environment reviewers
-    steps:
-      - name: Print Hello World
-        run: echo "Hello, World!"
